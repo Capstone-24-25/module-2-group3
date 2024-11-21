@@ -20,23 +20,24 @@ partitions <- initial_split(claims_data, prop = 0.8)
 train_text <- training(partitions) %>%
   pull(text_clean)
 train_labels <- training(partitions) %>%
-  pull(bclass) %>%
-  as.numeric() - 1
+  pull(bclass)
+train_labels_mclass <- training(partitions) %>%
+  pull(mclass)
 
 test_text <- testing(partitions) %>%
   pull(text_clean)
 test_labels <- testing(partitions) %>%
-  pull(bclass) %>%
-  as.numeric() - 1
+  pull(bclass)
+test_labels_mclass <- testing(partitions) %>%
+  pull(mclass)
 ```
-
 
 ```{r}
 preprocess_layer <- layer_text_vectorization(
   standardize = NULL,
   split = 'whitespace',
   ngrams = NULL,
-  max_tokens = 2000,
+  max_tokens = 7000,
   output_mode = 'tf_idf'
 )
 
@@ -45,13 +46,59 @@ preprocess_layer %>% adapt(train_text)
 
 ```{r}
 train_tfidf <- as.array(preprocess_layer(train_text))
+test_tfidf <- as.array(preprocess_layer(test_text))
+```
+
+# Binary Classification
+
+```{r}
+# Fit binary SVM
+svmfit_bclass = svm(x = train_tfidf,
+             y = factor(train_labels),
+             kernel = "linear", cost = 5, scale = FALSE)
+print(svmfit)
+```
+
+```{r}
+# compute predictions for binary
+
+pred.bclass <- predict(svmfit_bclass, newdata = test_tfidf)
+
+
+bclass_result <- tibble(
+  .id = testing(partitions) %>% pull(.id),
+  bclass = test_labels,
+  pred.bclass = pred.bclass
+)
+
+conf_mat(bclass_result, truth = bclass, estimate = pred.bclass)
+accuracy(bclass_result, truth = bclass, estimate = pred.bclass)
 ```
 
 
+# Multiclass
+
 ```{r}
-svmfit = svm(x = train_tfidf,
-             y = train_labels,
-             kernel = "linear", cost = 10, scale = FALSE)
+# Fit multiclass SVM
+svmfit_mclass = svm(x = train_tfidf,
+             y = factor(train_labels_mclass),
+             kernel = "linear", cost = 5, scale = FALSE)
 print(svmfit)
+```
+
+```{r}
+# compute predictions for multiclass
+
+pred.mclass <- predict(svmfit_mclass, newdata = test_tfidf)
+
+
+mclass_result <- tibble(
+  .id = testing(partitions) %>% pull(.id),
+  mclass = test_labels_mclass,
+  pred.mclass = pred.mclass
+)
+
+conf_mat(mclass_result, truth = mclass, estimate = pred.mclass)
+accuracy(mclass_result, truth = mclass, estimate = pred.mclass)
 ```
 
