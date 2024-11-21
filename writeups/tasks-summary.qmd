@@ -17,13 +17,14 @@ Do bigrams capture additional information relevant to the classification of inte
 **Answer**: For this part, we performed another tokenization. This time, we set n=2 to get bigrams. We then turned it into a document matrix in order to fit it through logistic principal regression. Then we used the log-odds-ratio and the principal components to fit it through another logistic regression model. After analysis, we got that the accuracy was 0.519. This means that bigrams do not seem to significantly capture additional information about the claims status of a page.
 
 ### Neural net
+Our first version of the model utilized one hot encoding on the text data. It was then run through an embedding layer in an attempt to extract some semantic correlations from the encoding. Finally, the model used a simple RNN layer. However, this model's accuracy hovered around .51. 
 
-Summarize the neural network model you trained by desribing:
+We then switched to a LSTM model and used tf-idf preprocessing. It uses a single LSTM layer into a binary classification output. Our model tended to overfit on the data so we added the following additional restraints and features to account for this:
+1) Reduced the learning rate for our "adam" optimizer to 0.0001. 
+2) Added a batch normalization layer immediately after our LSTM layer
+3) Implement early stopping. This monitors value loss during the training process. If the accuracy decreases for 3 epochs in a row, it callsback the best weights.
+4) Reducing the number of epochs to 15
 
--   architecture
+In the end, after these measures were implemented, we were averaging between .79 and .84 accuracy and loss averaging around 0.5 for the validation set. For the training set, we consistently had around .96 accuracy and 0.1 loss. 
 
--   optimization and loss
-
--   training epochs
-
--   predictive accuracy
+The only issue that arose is that the lstm requires you to specify a input size that includes timesteps and input dimension. This was a problem when inputting a dataset other than the training that had a different number of dimensions. We fixed this problem by padding the input data with zeros if necessary.
