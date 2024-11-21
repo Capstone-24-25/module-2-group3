@@ -102,3 +102,10 @@ conf_mat(mclass_result, truth = mclass, estimate = pred.mclass)
 accuracy(mclass_result, truth = mclass, estimate = pred.mclass)
 ```
 
+
+# Save models to results/SVM-Model
+```{r}
+saveRDS(svmfit_bclass, file = "../results/SVM-Model/svm_bclass.rds")
+saveRDS(svmfit_mclass, file = "../results/SVM-Model/svm_mclass.rds")
+```
+
