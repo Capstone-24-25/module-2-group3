@@ -8,6 +8,7 @@ setwd("~/Downloads/module-2-group3")
 
 load("~/Downloads/module-2-group3/data/claims-clean-example.RData")
 
+# Model Attempt 1: Simple RNN with one hot encoding for the dataset and an embedding layer
 claims_clean2 <- claims_clean %>% select(bclass, text_clean)
 
 library(tokenizers)
@@ -57,7 +58,7 @@ history <- rnn_model %>% fit(
 
 # Accuracy was hovering around .51
 
-# Try 2: TF-IDF data into a LSTM model with Overfitting restraints
+# Model Attempt 2: TF-IDF data into a LSTM model with Overfitting restraints
 
 clean <- claims_clean %>% select(.id, bclass, text_clean)
 
@@ -104,10 +105,9 @@ lstm_model %>%
   compile(
     loss = 'binary_crossentropy',
     optimizer = optimizer_adam(lr = 0.0001),
-    metrics = c('accuracy')
-  )
+    metrics = list('accuracy', 'recall'))
 
-early_stopping <- callback_early_stopping(monitor = 'val_loss', patience = 2, restore_best_weights = TRUE)
+early_stopping <- callback_early_stopping(monitor = 'val_loss', patience = 3, restore_best_weights = TRUE)
 
 history2 <- lstm_model %>%
   fit(x = X_train_reshaped,
@@ -115,3 +115,50 @@ history2 <- lstm_model %>%
       epochs = 15,
       validation_split = 0.2, 
       callbacks = list(early_stopping))
+
+
+# Finding Specificity, Sensitivity and Accuracy on test set
+test_dtm <- testing(partitions) %>%
+  unnest_tokens(output = 'token', 
+                input = text_clean) %>%
+  group_by(.id, bclass) %>%
+  count(token) %>%
+  bind_tf_idf(term = token, 
+              document = .id, 
+              n = n) %>%
+  pivot_wider(id_cols = c(.id, bclass), 
+              names_from = token, 
+              values_from = tf_idf,
+              values_fill = 0) %>%
+  ungroup()
+
+x_test <- test_dtm %>%
+  select(-bclass, -.id) %>%
+  as.matrix()
+
+zeros_needed <- 34170 - ncol(x_test)
+zeros_matrix <- matrix(0, nrow = nrow(x_test), ncol = zeros_needed)
+new_matrix <- cbind(x_test, zeros_matrix)
+
+X_test_reshaped <- array(new_matrix, dim = c(nrow(new_matrix), 1, ncol(new_matrix)))
+
+predictions <- predict(lstm_model, X_test_reshaped) %>%
+  as.numeric()
+
+pred_classes <- as.numeric(ifelse(predictions > 0.5, 1, 0))
+
+y_test <- test_dtm %>% 
+  pull(bclass) %>%
+  factor() %>%
+  as.numeric() - 1
+
+df <- data.frame(y_test, pred_classes) %>% mutate(
+                            group = factor(y_test),
+                        pred.group = factor(pred_classes)) %>% select(group, pred.group)
+
+panel_fn <- metric_set(sensitivity, specificity, accuracy)
+
+df %>%
+  panel_fn(truth = group,
+           estimate = pred.group,
+           event_level = 'second')
