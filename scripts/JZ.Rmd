@@ -56,7 +56,7 @@ test_tfidf <- as.array(preprocess_layer(test_text))
 svmfit_bclass = svm(x = train_tfidf,
              y = factor(train_labels),
              kernel = "linear", cost = 5, scale = FALSE)
-print(svmfit)
+print(svmfit_bclass)
 ```
 
 ```{r}
@@ -83,7 +83,7 @@ accuracy(bclass_result, truth = bclass, estimate = pred.bclass)
 svmfit_mclass = svm(x = train_tfidf,
              y = factor(train_labels_mclass),
              kernel = "linear", cost = 5, scale = FALSE)
-print(svmfit)
+print(svmfit_mclass)
 ```
 
 ```{r}
@@ -105,7 +105,34 @@ accuracy(mclass_result, truth = mclass, estimate = pred.mclass)
 
 # Save models to results/SVM-Model
 ```{r}
-saveRDS(svmfit_bclass, file = "../results/SVM-Model/svm_bclass.rds")
-saveRDS(svmfit_mclass, file = "../results/SVM-Model/svm_mclass.rds")
+# saveRDS(svmfit_bclass, file = "../results/SVM-Model/svm_bclass.rds")
+# saveRDS(svmfit_mclass, file = "../results/SVM-Model/svm_mclass.rds")
+```
+
+# Create pred_df on test data
+
+```{r}
+load('../data/claims-test.RData')
+source('../scripts/preprocessing.R')
+
+prop <- 0.16
+set.seed(1192)
+claims_test_subset <- claims_test[sample(nrow(claims_test), size = floor(prop * nrow(claims_test))), ]
+claims_test_subset_clean <- claims_test_subset %>% parse_data()
+
+claims_test_text <- claims_test_subset_clean$text_clean
+
+claims_test_tfidf <- as.array(preprocess_layer(claims_test_text))
+
+pred.bclass <- predict(svmfit_bclass, newdata = claims_test_tfidf)
+pred.mclass <- predict(svmfit_mclass, newdata = claims_test_tfidf)
+
+pred_df <- data.frame(
+  .id = claims_test_subset_clean %>% pull(.id),
+  bclass.pred = pred.bclass,
+  mclass.pred = pred.mclass
+)
+
+save(pred_df, file = "../results/preds-group3.RData")
 ```
 
