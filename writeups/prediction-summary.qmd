@@ -1,37 +1,29 @@
 ---
 title: "Predictive modeling of claims status"
-author: 'YOUR NAMES HERE'
+author: 'Anshi Arora, Joseph Zaki, Kasturi Sharma, Sanchit Mehrotra'
 date: today
 ---
 
 ### Abstract
 
-Provide a 3-5 sentence summary of your work on the primary task. Indicate what input data was used, what method was used for binary class predictions, what method was used for multiclass predictions, and what estimated accuracies were achieved.
-
-> *Header and paragraph content was scraped from the raw webpages and processed into term frequencies of word tokens. For binary classification, a two-layer neural network yielded an estimated 81.4% accuracy; for multiclass classification, a support vector machine gave 78% accuracy.*
+Only paragraph content was scraped from the raw webpages and processed into tf-idf of word tokens. Two Support Vector Machines were fitted, one for binary classification and the other for multiclass classification. The binary classification model had an accuracy of 75.5% and the multiclass model had an accuracy of 73.4%.
 
 ### Preprocessing
 
-In one paragraph lay out your preprocessing pipeline. No need to provide exact step-by-step detail; just give an overview of the main components:
-
--   what text content was extracted from HTML
-
--   how text was cleaned
-
--   how cleaned text was represented quantitatively
+Our preprocessing pipeline for the two SVM models consisted of cleaning the raw HTML by removing punctuation, stop words, and converting all letters to lower case. We also removed any characters that would be uninformative such as `nbsp` and `\\n`. We then identified all word tokens and represented this quantitatively for each webpage using the TF-IDF metric.
 
 ### Methods
 
-Describe your final predictive models. Include one paragraph with details on the binary classification approach, and one on the multiclass approach. Include for each:
+##### Binary Classification
 
--   what ML/statistical method was used
+The final predictive model for binary classification was a Support Vector Machine. We opted for a linear kernel and a cost of 5 since these led to better accuracy and may have helped to prevent or reduce overfitting. Although not a hyper parameter of the SVM model, one value that had an effect on the performance was the number of max tokens in the preprocessing stage. We settled on 7000 tokens as this seemed to maximize the performance.
 
--   model specification and hyperparameter selection
+##### Multiclass Classification
 
--   training method
+The final predictive model for multiclass classification was also a Support Vector Machine. We used the same hyperparameters for this model as we did for the binary classification model with a linear kernel and a cost parameter of 5. We also used a max token value of 7000 for multiclass classification.
 
 ### Results
 
-Indicate the predictive accuracy of the binary classifications and the multiclass classifications. Provide a table for each, and report sensitivity, specificity, and accuracy.[^1]
+After training the models on 80% of the given data and testing on the remaining 20%, we had a binary classification accuracy of 75.5% and a multiclass classification accuracy of 73.4%. These results are notably higher than the principal component logistic regression models which had accuracies around 51% both with header information and with bigrams.
 
 [^1]: Read [this article](https://yardstick.tidymodels.org/articles/multiclass.html) on multiclass averaging.
