@@ -105,7 +105,7 @@ lstm_model %>%
   compile(
     loss = 'binary_crossentropy',
     optimizer = optimizer_adam(lr = 0.0001),
-    metrics = list('accuracy', 'recall'))
+    metrics = list('accuracy'))
 
 early_stopping <- callback_early_stopping(monitor = 'val_loss', patience = 3, restore_best_weights = TRUE)
 
@@ -162,3 +162,5 @@ df %>%
   panel_fn(truth = group,
            estimate = pred.group,
            event_level = 'second')
+
+save_model_tf(lstm_model, "results/task3-NN-model")
