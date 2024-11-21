@@ -1,0 +1,57 @@
+```{r}
+library(tidymodels)
+library(tidyverse)
+library(keras)
+library(tensorflow)
+library(e1071)
+```
+
+```{r}
+load('../data/claims-clean-example.RData')
+```
+
+
+```{r}
+claims_data <- claims_clean %>% select(.id, bclass, mclass, text_clean)
+
+set.seed(9831)
+partitions <- initial_split(claims_data, prop = 0.8)
+
+train_text <- training(partitions) %>%
+  pull(text_clean)
+train_labels <- training(partitions) %>%
+  pull(bclass) %>%
+  as.numeric() - 1
+
+test_text <- testing(partitions) %>%
+  pull(text_clean)
+test_labels <- testing(partitions) %>%
+  pull(bclass) %>%
+  as.numeric() - 1
+```
+
+
+```{r}
+preprocess_layer <- layer_text_vectorization(
+  standardize = NULL,
+  split = 'whitespace',
+  ngrams = NULL,
+  max_tokens = 2000,
+  output_mode = 'tf_idf'
+)
+
+preprocess_layer %>% adapt(train_text)
+```
+
+```{r}
+train_tfidf <- as.array(preprocess_layer(train_text))
+```
+
+
+```{r}
+svmfit = svm(x = train_tfidf,
+             y = train_labels,
+             kernel = "linear", cost = 10, scale = FALSE)
+print(svmfit)
+```
+
