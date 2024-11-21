@@ -2,21 +2,26 @@
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
 
 <meta charset="utf-8">
-<meta name="generator" content="quarto-1.0.38">
+<meta name="generator" content="quarto-1.2.335">
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
-<meta name="author" content="YOUR NAMES HERE">
-<meta name="dcterms.date" content="2022-11-03">
+<meta name="author" content="Anshi Arora, Joseph Zaki, Kasturi Sharma, Sanchit Mehrotra">
+<meta name="dcterms.date" content="2024-11-20">
 
 <title>Summary of exploratory tasks</title>
 <style>
 code{white-space: pre-wrap;}
 span.smallcaps{font-variant: small-caps;}
-span.underline{text-decoration: underline;}
-div.column{display: inline-block; vertical-align: top; width: 50%;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
 div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
 ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1.6em;
+  vertical-align: middle;
+}
 </style>
 
 
@@ -52,23 +57,43 @@ ul.task-list{list-style: none;}
     <div>
     <div class="quarto-title-meta-heading">Author</div>
     <div class="quarto-title-meta-contents">
-             <p>YOUR NAMES HERE </p>
+             <p>Anshi Arora, Joseph Zaki, Kasturi Sharma, Sanchit Mehrotra </p>
           </div>
   </div>
     
     <div>
     <div class="quarto-title-meta-heading">Published</div>
     <div class="quarto-title-meta-contents">
-      <p class="date">November 3, 2022</p>
+      <p class="date">November 20, 2024</p>
     </div>
   </div>
+  
     
   </div>
   
 
 </header>
 
-
+<section id="html-scraping" class="level3">
+<h3 class="anchored" data-anchor-id="html-scraping">HTML scraping</h3>
+<p>Does including header content improve predictions? Answer the question and provide quantitative evidence supporting your answer.</p>
+<p><strong>Answer</strong>: Including the header content did not significantly improve predictions. We parsed through the paragraphs and included header information as well as the paragraph content. Then we tokenized the data and fit a logistical principal component regression model to it. After further analysis, we got an accuracy of 0.511. This suggests that augmenting the header content did not improve predictions significantly as by random chance, it would have been 0.5.</p>
+</section>
+<section id="bigrams" class="level3">
+<h3 class="anchored" data-anchor-id="bigrams">Bigrams</h3>
+<p>Do bigrams capture additional information relevant to the classification of interest? Answer the question, <strong>briefly</strong> describe what analysis you conducted to arrive at your answer, and provide quantitative evidence supporting your answer.</p>
+<p><strong>Answer</strong>: For this part, we performed another tokenization. This time, we set n=2 to get bigrams. We then turned it into a document matrix in order to fit it through logistic principal regression. Then we used the log-odds-ratio and the principal components to fit it through another logistic regression model. After analysis, we got that the accuracy was 0.519. This means that bigrams do not seem to significantly capture additional information about the claims status of a page.</p>
+</section>
+<section id="neural-net" class="level3">
+<h3 class="anchored" data-anchor-id="neural-net">Neural net</h3>
+<p>Summarize the neural network model you trained by desribing:</p>
+<ul>
+<li><p>architecture</p></li>
+<li><p>optimization and loss</p></li>
+<li><p>training epochs</p></li>
+<li><p>predictive accuracy</p></li>
+</ul>
+</section>
 
 </main>
 <!-- /main column -->
@@ -113,7 +138,24 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
     button.classList.add('code-copy-button-checked');
     var currentTitle = button.getAttribute("title");
     button.setAttribute("title", "Copied!");
+    let tooltip;
+    if (window.bootstrap) {
+      button.setAttribute("data-bs-toggle", "tooltip");
+      button.setAttribute("data-bs-placement", "left");
+      button.setAttribute("data-bs-title", "Copied!");
+      tooltip = new bootstrap.Tooltip(button, 
+        { trigger: "manual", 
+          customClass: "code-copy-button-tooltip",
+          offset: [0, -8]});
+      tooltip.show();    
+    }
     setTimeout(function() {
+      if (tooltip) {
+        tooltip.hide();
+        button.removeAttribute("data-bs-title");
+        button.removeAttribute("data-bs-toggle");
+        button.removeAttribute("data-bs-placement");
+      }
       button.setAttribute("title", currentTitle);
       button.classList.remove('code-copy-button-checked');
     }, 1000);
@@ -141,31 +183,50 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
   for (var i=0; i<noterefs.length; i++) {
     const ref = noterefs[i];
     tippyHover(ref, function() {
-      let href = ref.getAttribute('href');
+      // use id or data attribute instead here
+      let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
       try { href = new URL(href).hash; } catch {}
       const id = href.replace(/^#\/?/, "");
       const note = window.document.getElementById(id);
       return note.innerHTML;
     });
   }
+  const findCites = (el) => {
+    const parentEl = el.parentElement;
+    if (parentEl) {
+      const cites = parentEl.dataset.cites;
+      if (cites) {
+        return {
+          el,
+          cites: cites.split(' ')
+        };
+      } else {
+        return findCites(el.parentElement)
+      }
+    } else {
+      return undefined;
+    }
+  };
   var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
   for (var i=0; i<bibliorefs.length; i++) {
     const ref = bibliorefs[i];
-    const cites = ref.parentNode.getAttribute('data-cites').split(' ');
-    tippyHover(ref, function() {
-      var popup = window.document.createElement('div');
-      cites.forEach(function(cite) {
-        var citeDiv = window.document.createElement('div');
-        citeDiv.classList.add('hanging-indent');
-        citeDiv.classList.add('csl-entry');
-        var biblioDiv = window.document.getElementById('ref-' + cite);
-        if (biblioDiv) {
-          citeDiv.innerHTML = biblioDiv.innerHTML;
-        }
-        popup.appendChild(citeDiv);
+    const citeInfo = findCites(ref);
+    if (citeInfo) {
+      tippyHover(citeInfo.el, function() {
+        var popup = window.document.createElement('div');
+        citeInfo.cites.forEach(function(cite) {
+          var citeDiv = window.document.createElement('div');
+          citeDiv.classList.add('hanging-indent');
+          citeDiv.classList.add('csl-entry');
+          var biblioDiv = window.document.getElementById('ref-' + cite);
+          if (biblioDiv) {
+            citeDiv.innerHTML = biblioDiv.innerHTML;
+          }
+          popup.appendChild(citeDiv);
+        });
+        return popup.innerHTML;
       });
-      return popup.innerHTML;
-    });
+    }
   }
 });
 </script>
